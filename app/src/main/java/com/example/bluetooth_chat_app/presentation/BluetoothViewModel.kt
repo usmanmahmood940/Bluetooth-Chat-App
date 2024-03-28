@@ -38,15 +38,20 @@ class BluetoothViewModel @Inject constructor(
 
     private var deviceConnectionJob: Job? = null
     init {
-        bluetoothController.isConected.onEach {
+        bluetoothController.isConected.onEach {isConnected->
             _state.update {
-                it.copy(isConnected = it.isConnected)
+                it.copy(isConnected = isConnected)
+            }
+        }.launchIn(viewModelScope)
+        bluetoothController.isPaired.onEach {isPaired->
+            _state.update {
+                it.copy(isPaired = isPaired, isConnecting = false)
             }
         }.launchIn(viewModelScope)
 
-        bluetoothController.errors.onEach {
+        bluetoothController.errors.onEach {errorMessage->
             _state.update {
-                it.copy(errorMessage = it.errorMessage)
+                it.copy(errorMessage = errorMessage)
             }
         }.launchIn(viewModelScope)
 

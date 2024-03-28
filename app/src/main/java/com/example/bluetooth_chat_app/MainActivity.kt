@@ -10,7 +10,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -89,6 +88,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                LaunchedEffect(key1 = state.isPaired){
+                    if(state.isPaired){
+                        Toast.makeText(applicationContext, "Device Paired", Toast.LENGTH_LONG).show()
+                    }
+                }
                 Surface(
                     color = MaterialTheme.colorScheme.background
                 ) {
