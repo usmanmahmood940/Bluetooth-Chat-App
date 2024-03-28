@@ -42,7 +42,9 @@ class BluetoothViewModel @Inject constructor(
     init {
         bluetoothController.isConected.onEach {isConnected->
             _state.update {
-                it.copy(isConnected = isConnected)
+                it.copy(isConnected = isConnected,
+                    messages = if(isConnected) it.messages else emptyList()
+                )
             }
         }.launchIn(viewModelScope)
         bluetoothController.isPaired.onEach {isPaired->
@@ -56,6 +58,7 @@ class BluetoothViewModel @Inject constructor(
                 it.copy(errorMessage = errorMessage)
             }
         }.launchIn(viewModelScope)
+
 
     }
 
@@ -73,7 +76,8 @@ class BluetoothViewModel @Inject constructor(
         _state.update {
             it.copy(
                 isConnected = false,
-                isConnecting = false
+                isConnecting = false,
+                messages = emptyList()
             )
         }
     }

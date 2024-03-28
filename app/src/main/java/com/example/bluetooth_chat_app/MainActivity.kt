@@ -20,11 +20,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.bluetooth_chat_app.presentation.BluetoothViewModel
+import com.example.bluetooth_chat_app.presentation.components.ChatScreen
 import com.example.bluetooth_chat_app.presentation.components.DeviceScreen
 import com.example.bluetooth_chat_app.ui.theme.BluetoothChatAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,11 +45,21 @@ class MainActivity : ComponentActivity() {
     private val isBluetoothEnabled :Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
+    private var onResumeState by mutableStateOf(false)
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
         val enableBLueetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ isEnabled ->
 
+        }
+        val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+        val displayLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == 300) {
+                // Device is discoverable
+            }
         }
         val permissionLauncher  = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ permissions ->
             val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -54,10 +67,11 @@ class MainActivity : ComponentActivity() {
             } else {
                 true
             }
-            if(canEnableBluetooth && !isBluetoothEnabled){
-                enableBLueetoothLauncher.launch(
-                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                )
+            if(canEnableBluetooth){
+                displayLauncher.launch(discoverableIntent)
+//                enableBLueetoothLauncher.launch(
+//                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+//                )
             }
         }
 
@@ -71,9 +85,14 @@ class MainActivity : ComponentActivity() {
         }
 
 
+
+//        displayLauncher.launch(discoverableIntent)
+
+
         setContent {
             BluetoothChatAppTheme {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
+
                 val state by viewModel.state.collectAsState()
 
                 LaunchedEffect(key1 = state.errorMessage){
@@ -107,6 +126,13 @@ class MainActivity : ComponentActivity() {
                                 Text(text = "Connecting .....")
                             }
                         }
+                        state.isConnected ->{
+                            ChatScreen(
+                                state = state,
+                                onDisconnect = viewModel::disconnectFromDevice,
+                                onSendMessage = viewModel::sendMessage
+                            )
+                        }
                         else->{
                             DeviceScreen(
                                 state = state,
@@ -122,6 +148,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        onResumeState = !onResumeState
     }
 }
 

@@ -9,7 +9,8 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.Build
+import android.os.ParcelUuid
+import android.system.Os.socket
 import android.util.Log
 import com.example.bluetooth_chat_app.domain.chat.BluetoothChatMessage
 import com.example.bluetooth_chat_app.domain.chat.BluetoothController
@@ -17,7 +18,6 @@ import com.example.bluetooth_chat_app.domain.chat.BluetoothDataTransferService
 import com.example.bluetooth_chat_app.domain.chat.BluetoothDeviceDomain
 import com.example.bluetooth_chat_app.domain.chat.ConnectionResult
 import com.example.bluetooth_chat_app.domain.chat.toByteArray
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 
@@ -109,7 +108,7 @@ class AndroidBluetoothController(
             addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
             addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         }
-        context.registerReceiver(pairingRequestReceiver, filter)
+//        context.registerReceiver(pairingRequestReceiver, filter)
         context.registerReceiver(
             bluetoothStateReceiver,
             IntentFilter().apply {
@@ -128,6 +127,7 @@ class AndroidBluetoothController(
         context.registerReceiver(foundDeviceReceiver, IntentFilter(BluetoothDevice.ACTION_FOUND))
         updatePairedDevices()
         bluetoothAdapter?.startDiscovery()
+
     }
 
     override fun stopDiscovery() {
@@ -142,6 +142,7 @@ class AndroidBluetoothController(
             if(!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)){
                 throw SecurityException("Missing permission BLUETOOTH_CONNECT")
             }
+
             currentServerSocket = bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
                 "chat_service",
                 UUID.fromString(SERVICE_UUID)
@@ -159,6 +160,7 @@ class AndroidBluetoothController(
                 emit(ConnectionResult.ConnectionEstablished)
                 currentClientScoket?.let {
                     currentServerSocket?.close()
+                    shouldLoop = false
                     val service = BluetoothDataTransferService(it)
                     dataTransferService = service
                     emitAll(
@@ -182,17 +184,16 @@ class AndroidBluetoothController(
                 throw SecurityException("Missing permission BLUETOOTH_CONNECT")
             }
 
-
             currentClientScoket = bluetoothAdapter
                 ?.getRemoteDevice(device.address)
                 ?.createRfcommSocketToServiceRecord(
                     UUID.fromString(SERVICE_UUID)
                 )
             stopDiscovery()
-            val bluetoothDevice  = bluetoothAdapter?.getRemoteDevice(device.address)
-            if(bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == false){
-                bluetoothDevice?.createBond()
-            }else {
+//            val bluetoothDevice  = bluetoothAdapter?.getRemoteDevice(device.address)
+//            if(bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == false){
+//                bluetoothDevice?.createBond()
+//            }else {
                 currentClientScoket?.let { socket ->
                     try {
                         Log.d("USMAN-TAG", "Connection Request")
@@ -216,10 +217,8 @@ class AndroidBluetoothController(
 
                     }
                 }
-            }
+//            }
 
-        }.onCompletion {
-            closeConnection()
         }.flowOn(Dispatchers.IO)
     }
 
@@ -274,6 +273,6 @@ class AndroidBluetoothController(
     }
 
     companion object {
-        const val SERVICE_UUID = "a8184ca6-a2a3-4676-9303-b2308a600364"
+        const val SERVICE_UUID = "00001101-0000-1000-8000-00805F9B34FB"
     }
 }
