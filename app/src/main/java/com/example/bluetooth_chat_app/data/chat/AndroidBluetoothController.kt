@@ -11,9 +11,12 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import com.example.bluetooth_chat_app.domain.chat.BluetoothChatMessage
 import com.example.bluetooth_chat_app.domain.chat.BluetoothController
+import com.example.bluetooth_chat_app.domain.chat.BluetoothDataTransferService
 import com.example.bluetooth_chat_app.domain.chat.BluetoothDeviceDomain
 import com.example.bluetooth_chat_app.domain.chat.ConnectionResult
+import com.example.bluetooth_chat_app.domain.chat.toByteArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -23,8 +26,10 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -42,6 +47,8 @@ class AndroidBluetoothController(
     private val bluetoothAdapter by lazy{
         bluetoothManager?.adapter
     }
+
+    private var dataTransferService: BluetoothDataTransferService? = null
 
     private val _isConnected = MutableStateFlow(false)
     override val isConected: StateFlow<Boolean>
@@ -152,6 +159,15 @@ class AndroidBluetoothController(
                 emit(ConnectionResult.ConnectionEstablished)
                 currentClientScoket?.let {
                     currentServerSocket?.close()
+                    val service = BluetoothDataTransferService(it)
+                    dataTransferService = service
+                    emitAll(
+                        service
+                            .listenForIncomingMessages()
+                            .map {
+                                ConnectionResult.TransferSucceeded(it)
+                            }
+                    )
                 }
             }
         }.onCompletion {
@@ -182,6 +198,16 @@ class AndroidBluetoothController(
                         Log.d("USMAN-TAG", "Connection Request")
                         socket.connect()
                         emit(ConnectionResult.ConnectionEstablished)
+                        BluetoothDataTransferService(socket).also { service ->
+                            dataTransferService = service
+                            emitAll(
+                                service
+                                    .listenForIncomingMessages()
+                                    .map {
+                                        ConnectionResult.TransferSucceeded(it)
+                                    }
+                            )
+                        }
                     } catch (e: Exception) {
                         Log.d("USMAN-TAG", "Error connecting to device ${e.message}")
                         socket.close()
@@ -195,6 +221,24 @@ class AndroidBluetoothController(
         }.onCompletion {
             closeConnection()
         }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun trySendMessage(message: String): BluetoothChatMessage? {
+        if(!hasPermission(android.Manifest.permission.BLUETOOTH_CONNECT)){
+            return null
+        }
+        if (dataTransferService == null){
+            return null
+        }
+        val bluetoothChatMessage = BluetoothChatMessage(
+            message = message,
+            senderName = bluetoothAdapter?.name?: "Unknown name",
+            isFromLocalUser = true
+        )
+
+        dataTransferService?.sendMessage(bluetoothChatMessage.toByteArray())
+
+        return bluetoothChatMessage
     }
 
     override fun closeConnection() {
