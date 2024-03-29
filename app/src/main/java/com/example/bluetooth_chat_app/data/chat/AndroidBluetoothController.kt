@@ -53,10 +53,6 @@ class AndroidBluetoothController(
     override val isConected: StateFlow<Boolean>
         get() = _isConnected.asStateFlow()
 
-    private val _isPaired = MutableStateFlow(false)
-    override val isPaired: StateFlow<Boolean>
-        get() = _isPaired.asStateFlow()
-
     private val _scannedDevices = MutableStateFlow<List<BluetoothDeviceDomain>>(emptyList())
     override val scannedDevices: StateFlow<List<BluetoothDeviceDomain>>
         get() = _scannedDevices.asStateFlow()
@@ -88,27 +84,12 @@ class AndroidBluetoothController(
         }
     }
 
-    private val pairingRequestReceiver = PairingRequestReciever(
-        onPairingRequest = { device ->
-            Log.d("USMAN-TAG", "Pairing request callback ${device.name}")
-        },
-        onBondStateChanged = { device, state ->
-            Log.d("USMAN-TAG", "Bonding request callback ${device.name} $state")
-            _isPaired.update { true }
-        }
-    )
-
-
     private var currentServerSocket:BluetoothServerSocket? = null
     private var currentClientScoket: BluetoothSocket? = null
 
     init {
         updatePairedDevices()
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_PAIRING_REQUEST)
-            addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
-        }
-//        context.registerReceiver(pairingRequestReceiver, filter)
+
         context.registerReceiver(
             bluetoothStateReceiver,
             IntentFilter().apply {
@@ -190,35 +171,30 @@ class AndroidBluetoothController(
                     UUID.fromString(SERVICE_UUID)
                 )
             stopDiscovery()
-//            val bluetoothDevice  = bluetoothAdapter?.getRemoteDevice(device.address)
-//            if(bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == false){
-//                bluetoothDevice?.createBond()
-//            }else {
-                currentClientScoket?.let { socket ->
-                    try {
-                        Log.d("USMAN-TAG", "Connection Request")
-                        socket.connect()
-                        emit(ConnectionResult.ConnectionEstablished)
-                        BluetoothDataTransferService(socket).also { service ->
-                            dataTransferService = service
-                            emitAll(
-                                service
-                                    .listenForIncomingMessages()
-                                    .map {
-                                        ConnectionResult.TransferSucceeded(it)
-                                    }
-                            )
-                        }
-                    } catch (e: Exception) {
-                        Log.d("USMAN-TAG", "Error connecting to device ${e.message}")
-                        socket.close()
-                        currentClientScoket = null
-                        emit(ConnectionResult.Error("Connection was interrupted"))
 
+            currentClientScoket?.let { socket ->
+                try {
+                    Log.d("USMAN-TAG", "Connection Request")
+                    socket.connect()
+                    emit(ConnectionResult.ConnectionEstablished)
+                    BluetoothDataTransferService(socket).also { service ->
+                        dataTransferService = service
+                        emitAll(
+                            service
+                                .listenForIncomingMessages()
+                                .map {
+                                    ConnectionResult.TransferSucceeded(it)
+                                }
+                        )
                     }
-                }
-//            }
+                } catch (e: Exception) {
+                    Log.d("USMAN-TAG", "Error connecting to device ${e.message}")
+                    socket.close()
+                    currentClientScoket = null
+                    emit(ConnectionResult.Error("Connection was interrupted"))
 
+                }
+            }
         }.onCompletion {
             closeConnection()
         }.flowOn(Dispatchers.IO)
@@ -252,7 +228,6 @@ class AndroidBluetoothController(
     override fun release() {
         context.unregisterReceiver(foundDeviceReceiver)
         context.unregisterReceiver(bluetoothStateReceiver)
-        context.unregisterReceiver(pairingRequestReceiver)
         closeConnection()
     }
 

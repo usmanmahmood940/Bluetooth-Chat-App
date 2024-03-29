@@ -49,11 +49,6 @@ class BluetoothViewModel @Inject constructor(
                     )
                 }
             }.launchIn(viewModelScope)
-            isPaired.onEach {isPaired->
-                _state.update {
-                    it.copy(isPaired = isPaired, isConnecting = false)
-                }
-            }.launchIn(viewModelScope)
 
             errors.onEach {errorMessage->
                 _state.update {

@@ -52,9 +52,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-        val enableBLueetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ isEnabled ->
 
-        }
         val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).putExtra(
             BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300
         )
@@ -71,9 +69,7 @@ class MainActivity : ComponentActivity() {
             }
             if(canEnableBluetooth){
                 displayLauncher.launch(discoverableIntent)
-//                enableBLueetoothLauncher.launch(
-//                    Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-//                )
+//
             }
         }
 
@@ -85,12 +81,7 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
-
-
-
-//        displayLauncher.launch(discoverableIntent)
-
-
+        
         setContent {
             BluetoothChatAppTheme {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
