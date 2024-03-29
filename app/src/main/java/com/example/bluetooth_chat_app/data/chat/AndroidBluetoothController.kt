@@ -219,6 +219,8 @@ class AndroidBluetoothController(
                 }
 //            }
 
+        }.onCompletion {
+            closeConnection()
         }.flowOn(Dispatchers.IO)
     }
 

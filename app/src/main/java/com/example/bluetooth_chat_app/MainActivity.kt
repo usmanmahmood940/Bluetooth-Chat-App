@@ -55,7 +55,9 @@ class MainActivity : ComponentActivity() {
         val enableBLueetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ isEnabled ->
 
         }
-        val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE)
+        val discoverableIntent: Intent = Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).putExtra(
+            BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300
+        )
         val displayLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == 300) {
                 // Device is discoverable
