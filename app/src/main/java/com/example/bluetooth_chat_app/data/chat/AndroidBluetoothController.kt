@@ -9,9 +9,6 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.ParcelUuid
-import android.system.Os.socket
-import android.util.Log
 import com.example.bluetooth_chat_app.domain.chat.BluetoothChatMessage
 import com.example.bluetooth_chat_app.domain.chat.BluetoothController
 import com.example.bluetooth_chat_app.domain.chat.BluetoothDataTransferService
@@ -174,7 +171,6 @@ class AndroidBluetoothController(
 
             currentClientScoket?.let { socket ->
                 try {
-                    Log.d("USMAN-TAG", "Connection Request")
                     socket.connect()
                     emit(ConnectionResult.ConnectionEstablished)
                     BluetoothDataTransferService(socket).also { service ->
@@ -188,7 +184,6 @@ class AndroidBluetoothController(
                         )
                     }
                 } catch (e: Exception) {
-                    Log.d("USMAN-TAG", "Error connecting to device ${e.message}")
                     socket.close()
                     currentClientScoket = null
                     emit(ConnectionResult.Error("Connection was interrupted"))
