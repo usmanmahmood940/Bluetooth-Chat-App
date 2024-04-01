@@ -95,8 +95,9 @@ class BlePeripheralManager(private val context: Context) {
             super.onConnectionStateChange(device, status, newState)
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 // Handle device connection
+
                 Log.d("USMAN-TAG", "Device connected: ${device?.address}")
-                Toast.makeText(context, "Device connected: ${device?.address}", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(context, "Device connected: ${device?.address}", Toast.LENGTH_SHORT).show()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 // Handle device disconnection
                 Log.d("USMAN-TAG", "Device disconnected: ${device?.address}")

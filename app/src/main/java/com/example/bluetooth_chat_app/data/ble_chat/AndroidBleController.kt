@@ -100,9 +100,22 @@ class AndroidBleController(
         }
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             with(gatt) {
-                Log.d("BluetoothGattCallback", "Discovered ${services.size} services for ${device.name}")
+                Log.d(
+                    "BluetoothGattCallback",
+                    "Discovered ${services.size} services for ${device.name}"
+                )
+                services.forEach { service ->
+                    Log.d("BluetoothGattCallback", "Service: ${service.uuid}")
+                    service.characteristics.forEach { characteristic ->
+                        Log.d("BluetoothGattCallback", "Characteristic: ${characteristic.uuid}")
+                        Log.d(
+                            "BluetoothGattCallback",
+                            "Characteristic: ${characteristic.isWritable()}"
+                        )
+                    }
 //                printGattTable() // See implementation just above this section
-                // Consider connection setup as complete here
+                    // Consider connection setup as complete here
+                }
             }
         }
 
@@ -119,7 +132,6 @@ class AndroidBleController(
         override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
             super.onCharacteristicWrite(gatt, characteristic, status)
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                Log.d("BluetoothGattCallback", "it came in if}")
                 // Characteristic write successful, handle it here
                 val receivedMessage = characteristic?.value?.let { String(it) }
                 // Process received message
@@ -158,14 +170,21 @@ class AndroidBleController(
         bluetoothGatt?.let { gatt ->
             val service = gatt.getService(UUID.fromString(SERVICE_UUID))
             service?.let {
+                it.characteristics.forEach {
+
+                    Log.d("BluetoothGattCallback", "Characteristic: ${it.uuid}")
+                    Log.d("BluetoothGattCallback", "Characteristic: ${it.isWritable()}")
+                }
                 val characteristic = it.getCharacteristic(UUID.fromString(CHARACTERISTICS_UUID))
-                Log.d("BluetoothGattCallback", "Characteristic: $characteristic")
+                Log.d("BluetoothGattCallback", "Characteristic: ${characteristic.uuid}")
+
+                Log.d("BluetoothGattCallback", "Property Write ${BluetoothGattCharacteristic.PROPERTY_WRITE}")
+                Log.d("BluetoothGattCallback", "Property Write response ${BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE}")
                 characteristic?.let {char->
-                    Log.d("BluetoothGattCallback", "Property Write ${BluetoothGattCharacteristic.PROPERTY_WRITE}")
-                    Log.d("BluetoothGattCallback", "Property Write response ${BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE}")
+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         try {
-                            if (characteristic.properties and BluetoothGattCharacteristic.PROPERTY_WRITE != 0) {
+                            if (characteristic.properties !=0 && BluetoothGattCharacteristic.PROPERTY_WRITE != 0) {
                                 // The characteristic supports write operations
 
                                 val check = gatt.writeCharacteristic(
@@ -182,8 +201,8 @@ class AndroidBleController(
                         }
                     }
                     else{
-                        char.setValue("123123");
-                        char.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+                        char.value = message.toByteArray()
+//                        char.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
                         val isSuccessful = gatt.writeCharacteristic(char)
                         if (isSuccessful){
                             Log.d("BluetoothGattCallback", "Message sent successfully")
