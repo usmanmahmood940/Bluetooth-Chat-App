@@ -28,100 +28,100 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.example.bluetooth_chat_app.presentation.BluetoothUiState
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun ChatScreen(
-    state: BluetoothUiState,
-    onDisconnect : () -> Unit,
-    onSendMessage : (String) -> Unit
-) {
-    var message by rememberSaveable {
-        mutableStateOf("")
-    }
-
-    var keyboardController = LocalSoftwareKeyboardController.current
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ){
-            Text(
-                text = "Messages",
-                modifier = Modifier
-                    .weight(1f)
-            )
-            IconButton(
-                onClick = onDisconnect
-            ){
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Disconnect"
-                )
-            }
-        }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ){
-            items(state.messages){message->
-               Column(
-                   modifier = Modifier
-                       .fillMaxWidth()
-               ) {
-                   ChatMessage(
-                       message = message,
-                       modifier = Modifier
-                           .align(
-                               if (message.isFromLocalUser) {
-                                   Alignment.End
-                               } else {
-                                   Alignment.Start
-                               }
-                           )
-                   )
-
-               }
-
-            }
-
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ){
-            TextField(
-                value = message,
-                onValueChange = {message = it},
-                modifier = Modifier
-                    .weight(1f),
-                placeholder = {
-                    Text(text = "Type a message")
-                }
-            )
-            IconButton(
-                onClick = {
-                    onSendMessage(message)
-                    message = ""
-                    keyboardController?.hide()
-                }
-            ){
-                Icon(
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "Send Message"
-                )
-            }
-        }
-
-    }
-
-}
+//@OptIn(ExperimentalComposeUiApi::class)
+//@Composable
+//fun ChatScreen(
+//    state: BluetoothUiState,
+//    onDisconnect : () -> Unit,
+//    onSendMessage : (String) -> Unit
+//) {
+//    var message by rememberSaveable {
+//        mutableStateOf("")
+//    }
+//
+//    var keyboardController = LocalSoftwareKeyboardController.current
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp),
+//            verticalAlignment = Alignment.CenterVertically,
+//        ){
+//            Text(
+//                text = "Messages",
+//                modifier = Modifier
+//                    .weight(1f)
+//            )
+//            IconButton(
+//                onClick = onDisconnect
+//            ){
+//                Icon(
+//                    imageVector = Icons.Default.Close,
+//                    contentDescription = "Disconnect"
+//                )
+//            }
+//        }
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .weight(1f),
+//            contentPadding = PaddingValues(16.dp),
+//            verticalArrangement = Arrangement.spacedBy(16.dp)
+//        ){
+//            items(state.messages){message->
+//               Column(
+//                   modifier = Modifier
+//                       .fillMaxWidth()
+//               ) {
+//                   ChatMessage(
+//                       message = message,
+//                       modifier = Modifier
+//                           .align(
+//                               if (message.isFromLocalUser) {
+//                                   Alignment.End
+//                               } else {
+//                                   Alignment.Start
+//                               }
+//                           )
+//                   )
+//
+//               }
+//
+//            }
+//
+//        }
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ){
+//            TextField(
+//                value = message,
+//                onValueChange = {message = it},
+//                modifier = Modifier
+//                    .weight(1f),
+//                placeholder = {
+//                    Text(text = "Type a message")
+//                }
+//            )
+//            IconButton(
+//                onClick = {
+//                    onSendMessage(message)
+//                    message = ""
+//                    keyboardController?.hide()
+//                }
+//            ){
+//                Icon(
+//                    imageVector = Icons.Default.Send,
+//                    contentDescription = "Send Message"
+//                )
+//            }
+//        }
+//
+//    }
+//
+//}

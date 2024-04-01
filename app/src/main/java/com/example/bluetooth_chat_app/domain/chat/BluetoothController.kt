@@ -1,24 +1,20 @@
 package com.example.bluetooth_chat_app.domain.chat
 
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanCallback
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface BluetoothController {
-    val isConected : StateFlow<Boolean>
-    val isPaired : StateFlow<Boolean>
     val scannedDevices : StateFlow<List<BluetoothDevice>>
     val pairedDevices : StateFlow<List<BluetoothDevice>>
-    val errors:SharedFlow<String>
 
-    fun startDiscovery()
-    fun stopDiscovery()
+    val scanCallback: ScanCallback
+    fun startScanning()
 
-    fun startBluetoothServer(): Flow<ConnectionResult>
-    fun connectToDevice(device: BluetoothDevice): Flow<ConnectionResult>
+    fun connectDevice(device: BluetoothDevice)
 
-    suspend fun trySendMessage(message: String):BluetoothChatMessage?
-    fun closeConnection()
-
-    fun release()
+    fun sendData(message: BluetoothChatMessage)
+    fun stopScanning()
 }

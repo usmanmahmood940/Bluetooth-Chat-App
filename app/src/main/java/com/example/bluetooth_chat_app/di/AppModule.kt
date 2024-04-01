@@ -1,7 +1,8 @@
 package com.example.bluetooth_chat_app.di
 
 import android.content.Context
-import com.example.bluetooth_chat_app.data.chat.AndroidBluetoothController
+import com.example.bluetooth_chat_app.data.ble_chat.AndroidBleController
+import com.example.bluetooth_chat_app.data.ble_chat.BlePeripheralManager
 import com.example.bluetooth_chat_app.domain.chat.BluetoothController
 import dagger.Module
 import dagger.Provides
@@ -17,6 +18,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideBluetoothController(@ApplicationContext conext: Context): BluetoothController {
-        return AndroidBluetoothController(conext)
+        return AndroidBleController(conext)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBleServerManager(@ApplicationContext conext: Context): BlePeripheralManager {
+        return BlePeripheralManager(conext)
     }
 }

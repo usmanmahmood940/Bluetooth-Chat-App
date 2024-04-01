@@ -1,5 +1,8 @@
 package com.example.bluetooth_chat_app.presentation.components
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanResult
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,68 +27,93 @@ fun DeviceScreen(
     state: BluetoothUiState,
     onScanClick: () -> Unit,
     onStopScanClick: () -> Unit,
-    onDeviceClick: (BluetoothDeviceDomain) -> Unit,
-    onStartServer: () -> Unit,
+    onDeviceClick: (BluetoothDevice) -> Unit,
+    onStartServerClick: () -> Unit,
+    onSendMessage: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
-    ){
+    ) {
         BluetoothDeviceList(
             pairedDevices = state.pairedDevices,
-            scannedDevices =state.scannedDevices ,
+            scannedDevices = state.scannedDevices,
             onDeviceClick = onDeviceClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-            )
-        Row (
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
-            Button(onClick = onScanClick) {
-                Text(text = "Start Scan")
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Button(onClick = onScanClick) {
+                    Text(text = "Start Scan")
+                }
+                Button(onClick = onStopScanClick) {
+                    Text(text = "Stop Scan")
+                }
+                Button(onClick = onStartServerClick) {
+                    Text(text = "Start Server")
+                }
+
             }
-            Button(onClick = onStopScanClick ) {
-                Text(text = "Stop Scan")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Button(onClick = onSendMessage) {
+                    Text(text = "Sned Message")
+                }
+
             }
-            Button(onClick = onStartServer ) {
-                Text(text = "Start Server ")
-            }
+
 
         }
     }
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 fun BluetoothDeviceList(
-    pairedDevices:List<BluetoothDeviceDomain>,
-    scannedDevices:List<BluetoothDeviceDomain>,
-    onDeviceClick: (BluetoothDeviceDomain) -> Unit,
+    pairedDevices: List<BluetoothDevice>,
+    scannedDevices: List<BluetoothDevice>,
+    onDeviceClick: (BluetoothDevice) -> Unit,
     modifier: Modifier = Modifier
-){
+) {
     LazyColumn(
         modifier = modifier
-    ){
-        item{
-           Text(
-               text = "Paired Devices",
-               fontWeight = FontWeight.Bold,
-               fontSize = 24.sp,
-               modifier = Modifier.padding(16.dp)
-               )
-        }
-        items(pairedDevices){device->
+    ) {
+        item {
             Text(
-                text = device.name?:"Unknown",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onDeviceClick(device) }
-                    .padding(16.dp),
-                fontSize = 18.sp
+                text = "Paired Devices",
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                modifier = Modifier.padding(16.dp)
             )
         }
+        items(pairedDevices) { device ->
+            device.name?.let {
+                Text(
+                    text = device.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onDeviceClick(device) }
+                        .padding(16.dp),
+                    fontSize = 18.sp
+                )
+            }
+        }
 
-        item{
+        item {
             Text(
                 text = "Scanned Devices",
                 fontWeight = FontWeight.Bold,
@@ -93,15 +121,17 @@ fun BluetoothDeviceList(
                 modifier = Modifier.padding(16.dp)
             )
         }
-        items(scannedDevices){device->
-            Text(
-                text = device.name?:"Unknown",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onDeviceClick(device) }
-                    .padding(16.dp),
-                fontSize = 18.sp
-            )
+        items(scannedDevices) { device ->
+            device.name.let {
+                Text(
+                    text = "${device.name ?: ""} - ${device.address}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onDeviceClick(device) }
+                        .padding(16.dp),
+                    fontSize = 18.sp
+                )
+            }
         }
 
     }

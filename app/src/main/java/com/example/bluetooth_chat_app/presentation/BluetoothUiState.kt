@@ -1,14 +1,13 @@
 package com.example.bluetooth_chat_app.presentation
 
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanResult
 import com.example.bluetooth_chat_app.domain.chat.BluetoothChatMessage
 import com.example.bluetooth_chat_app.domain.chat.BluetoothDeviceDomain
 
 data class BluetoothUiState(
-    val scannedDevices: List<BluetoothDeviceDomain> = emptyList(),
-    val pairedDevices: List<BluetoothDeviceDomain> = emptyList(),
-    val isConnected: Boolean = false,
-    val isConnecting: Boolean = false,
-    val errorMessage:String? = null,
-    val isPaired:Boolean = false,
-    val messages:List<BluetoothChatMessage> = emptyList()
+    val pairedDevices: List<BluetoothDevice> = emptyList(),
+    val scannedDevices: List<BluetoothDevice> = emptyList(),
+    val messages: List<BluetoothChatMessage> = emptyList(),
+
 )
